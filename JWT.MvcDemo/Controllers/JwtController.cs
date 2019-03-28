@@ -30,8 +30,13 @@ namespace JWT.MvcDemo.Controllers
         /// <returns></returns>
         public ActionResult CreateToken(string username, string pwd)
         {
-
+           
             DataResult result = new DataResult();
+            IDateTimeProvider provider = new UtcDateTimeProvider();
+            var now = provider.GetNow().AddMinutes(int.Parse(overtime));
+            var unixEpoch = JwtValidator.UnixEpoch; // 1970-01-01 00:00:00 UTC
+            var secondsSinceEpoch = Math.Round((now - unixEpoch).TotalSeconds);
+
 
             //假设用户名为"admin"，密码为"admin"  
             if (username == "admin" && pwd == "admin")
@@ -42,7 +47,8 @@ namespace JWT.MvcDemo.Controllers
                 {
                     { "username",username },
                     { "pwd", pwd },   //通常不存储密码。可以是其它信息。
-                    {"iat",timeEncode }
+                    {"iat",timeEncode },
+                    { "exp", secondsSinceEpoch }
                 };
              
                 result.Token = JwtHelp.SetJwtEncode(payload);
@@ -73,31 +79,43 @@ namespace JWT.MvcDemo.Controllers
             }
             var appid = Request.Headers["appId"];
             Log4Help.Info("第三方验证appid::" + appid);
-            //找签发时间
-            var userinfo = JwtHelp.GetJwtDecode(authHeader);
-            if (string.IsNullOrEmpty(userinfo.iat))//找加密的签发时间
+
+            //找签发时间,如果附带exp,则不需要此种方式
+            try
             {
-                 Response.StatusCode = 403;
-                result = false;
-            } 
-            string requestTime = userinfo.iat;
-            //请求时间RSA解密后加上时间戳的时间即该请求的有效时间
-            DateTime Requestdt = DateTime.Parse(DESCryption.Decode(requestTime)).AddMinutes(int.Parse(overtime));
-            DateTime Newdt = DateTime.Now; //服务器接收请求的当前时间
-            if (Requestdt < Newdt)
-            {
-                Response.StatusCode = 403;
-                result = false;
-            }
-            else
-            {
-                //   用户信息 判断  从redis取值  todo      维护一个userid与最新token的表
-                if (userinfo.UserName == "admin" && userinfo.Pwd == "admin")
-                { 
-                    result = true;
+                var userinfo = JwtHelp.GetJwtDecode(authHeader);
+                if (string.IsNullOrEmpty(userinfo.iat))//找加密的签发时间
+                {
+                    Response.StatusCode = 403;
+                    result = false;
+                }
+                string requestTime = userinfo.iat;
+                //请求时间RSA解密后加上时间戳的时间即该请求的有效时间
+                DateTime Requestdt = DateTime.Parse(DESCryption.Decode(requestTime)).AddMinutes(int.Parse(overtime));
+                DateTime Newdt = DateTime.Now; //服务器接收请求的当前时间
+                if (Requestdt < Newdt)
+                {
+                    Response.StatusCode = 403;
+                    result = false;
+                }
+                else
+                {
+                    //   用户信息 判断  从redis取值  todo      维护一个userid与最新token的表
+                    if (userinfo.UserName == "admin" && userinfo.Pwd == "admin")
+                    {
+                        result = true;
+                    }
                 }
             }
-         
+            catch (TokenExpiredException)
+            {
+               // Console.WriteLine("Token has expired");
+            }
+            catch (SignatureVerificationException)
+            {
+              //  Console.WriteLine("Token has invalid signature");
+            } 
+
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 

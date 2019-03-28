@@ -17,6 +17,11 @@ namespace ThreeParty.Controllers
         private readonly string  verifyUrl = ConfigurationManager.AppSettings["jwt_verifyUrl"];
 
 
+        /// <summary>
+        /// 远程验证
+        /// </summary>
+        /// <param name="Token"></param>
+        /// <returns></returns>
         public bool verifyToken(string Token)
         {
             string strGetResponse = string.Empty;
@@ -97,7 +102,7 @@ namespace ThreeParty.Controllers
 //                        string userID = tokenModel.UserName;
 //                        ViewBag.Message = "已经通过验证,token解密为:"+ userID;
 
-                        ViewBag.Message = "已经通过验证,token解密为:" + tokenModel;
+                        ViewBag.Message = "token解密结果为:" + tokenModel;
                     }
 
                 }

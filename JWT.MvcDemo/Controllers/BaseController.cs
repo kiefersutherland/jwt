@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -11,12 +12,18 @@ namespace JWT.MvcDemo.Controllers
 {
     public class BaseController : Controller
     {
+        private readonly string overtime = ConfigurationManager.AppSettings["overtime"];
         public string getToken()
         { 
             //后台原来的用户信息  根据原方式cookie或session等取得
             string username = "admin";
             string pwd = "admin";
 
+       
+            IDateTimeProvider provider = new UtcDateTimeProvider();
+            var now = provider.GetNow().AddMinutes(int.Parse(overtime));
+            var unixEpoch = JwtValidator.UnixEpoch; // 1970-01-01 00:00:00 UTC 
+            var secondsSinceEpoch = Math.Round((now - unixEpoch).TotalSeconds);
             DataResult result = new DataResult(); 
             //假设用户名为"admin"，密码为"admin"   
                 string d = DateTime.Now.ToString();
@@ -25,7 +32,8 @@ namespace JWT.MvcDemo.Controllers
                 {
                     { "username",username },
                     { "pwd", pwd },
-                    {"iat",timeEncode }
+                    {"iat",timeEncode },
+                    { "exp", secondsSinceEpoch }
                 };
                 result.Token = JwtHelp.SetJwtEncode(payload);
  
