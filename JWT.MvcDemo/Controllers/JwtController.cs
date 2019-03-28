@@ -6,6 +6,7 @@ using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using JWT.Common;
 using Newtonsoft.Json;
 
 namespace JWT.MvcDemo.Controllers
@@ -40,7 +41,7 @@ namespace JWT.MvcDemo.Controllers
                 var payload = new Dictionary<string, object>
                 {
                     { "username",username },
-                    { "pwd", pwd },
+                    { "pwd", pwd },   //通常不存储密码。可以是其它信息。
                     {"iat",timeEncode }
                 };
              
@@ -70,6 +71,8 @@ namespace JWT.MvcDemo.Controllers
                  Response.StatusCode = 403;
                 result= false;
             }
+            var appid = Request.Headers["appId"];
+            Log4Help.Info("第三方验证appid::" + appid);
             //找签发时间
             var userinfo = JwtHelp.GetJwtDecode(authHeader);
             if (string.IsNullOrEmpty(userinfo.iat))//找加密的签发时间
@@ -88,13 +91,13 @@ namespace JWT.MvcDemo.Controllers
             }
             else
             {
-                //   用户信息 判断  从redis取值  todo
+                //   用户信息 判断  从redis取值  todo      维护一个userid与最新token的表
                 if (userinfo.UserName == "admin" && userinfo.Pwd == "admin")
                 { 
                     result = true;
                 }
             }
-
+         
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
