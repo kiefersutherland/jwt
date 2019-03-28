@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/go.js"></script>
+    <title>第三方网站调用</title>
+</head>
+<body>
+<body>
+<fieldset>
+    <legend>getToken</legend>
+    <form>
+        <label for="UserName">用户名:</label><input type="text" name="userName" id="userName" value="admin" />
+        <br />
+        <br />
+        <label for="Password">密码:</label><input type="password" name="pwd" id="password" value="admin" />
+        <br />
+        <br />
+    </form>
+    <button type="button"   id="login">登录</button>
+</fieldset>
+<br />
+
+<fieldset>
+    <legend>调用接口</legend>
+    <button type="button" id="invoke">调用接口</button>
+</fieldset>
+
+<fieldset>
+    <legend>调用无验证</legend>
+    <button type="button" id="info">调用无验证接口</button>
+</fieldset>
+
+
+<fieldset>
+    <legend>调用第三方系统</legend>
+    <a href="http://localhost:10086/home/Java" target="_blank">调用第三方系统</a>
+ 
+</fieldset>
+ 
+</body>
+</body>
+</html>

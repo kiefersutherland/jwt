@@ -1,4 +1,5 @@
-﻿using JWT.Common;
+﻿using System.Configuration;
+using JWT.Common;
 using System.Web.Mvc;
 
 
@@ -6,7 +7,7 @@ namespace JWT.MvcDemo.Controllers
 {
 
 
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         public ActionResult Index()
         {
@@ -36,6 +37,17 @@ namespace JWT.MvcDemo.Controllers
             return Json("权限不足", JsonRequestBehavior.AllowGet);
         }
 
+
+        //获得第三方网址
+        private static string threeparty1 = ConfigurationManager.AppSettings["threeparty1"].ToString();
+
+
+        //要跳转的第三方网址
+        public ActionResult Java()
+        {
+            string token = getToken();
+            return Redirect (threeparty1+"/java/info?token="+ token);
+        }
 
       
 

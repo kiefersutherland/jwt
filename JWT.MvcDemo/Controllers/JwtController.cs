@@ -2,16 +2,18 @@
 using JWT.MvcDemo.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 
 namespace JWT.MvcDemo.Controllers
 {
     public class JwtController : Controller
     {
- 
 
+        private readonly string overtime = ConfigurationManager.AppSettings["overtime"];
         public ActionResult GetEncodeTime()
         {
             string d = DateTime.Now.ToString();
@@ -56,5 +58,46 @@ namespace JWT.MvcDemo.Controllers
             return Json(result,JsonRequestBehavior.AllowGet);
         }
 
+       
+        //远程三方验证
+        public ActionResult verifyToken()
+        {
+
+            bool result = false;
+            var authHeader =  Request.Headers["auth"];
+            if (authHeader == null)
+            {
+                 Response.StatusCode = 403;
+                result= false;
+            }
+            //找签发时间
+            var userinfo = JwtHelp.GetJwtDecode(authHeader);
+            if (string.IsNullOrEmpty(userinfo.iat))//找加密的签发时间
+            {
+                 Response.StatusCode = 403;
+                result = false;
+            } 
+            string requestTime = userinfo.iat;
+            //请求时间RSA解密后加上时间戳的时间即该请求的有效时间
+            DateTime Requestdt = DateTime.Parse(DESCryption.Decode(requestTime)).AddMinutes(int.Parse(overtime));
+            DateTime Newdt = DateTime.Now; //服务器接收请求的当前时间
+            if (Requestdt < Newdt)
+            {
+                Response.StatusCode = 403;
+                result = false;
+            }
+            else
+            {
+                //   用户信息 判断  从redis取值  todo
+                if (userinfo.UserName == "admin" && userinfo.Pwd == "admin")
+                { 
+                    result = true;
+                }
+            }
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+   
     }
 }
