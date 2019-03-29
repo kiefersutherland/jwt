@@ -72,6 +72,15 @@ namespace JWT.MvcDemo.Controllers
 
             bool result = false;
             var authHeader =  Request.Headers["auth"];
+            var ip = Request.UserHostAddress;
+            Log4Help.Info("第三方验证ip::" + ip);
+            //判断 此ip 是否在合法来源范围        ip可维护表
+            if (ip != "127.0.0.1")
+            {
+                result = false;
+            }
+
+
             if (authHeader == null)
             {
                  Response.StatusCode = 403;
